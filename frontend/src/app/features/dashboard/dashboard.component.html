@@ -1,0 +1,113 @@
+﻿<div class="page-head">
+  <div>
+    <h1>Executive Operations Telemetry</h1>
+    <p class="muted">Aggregated via single-pass PostgreSQL CTEs & live operational views</p>
+  </div>
+  <button class="btn" (click)="ngOnInit()">Refresh Metrics</button>
+</div>
+
+<div class="alert error" *ngIf="error">{{ error }}</div>
+<div class="muted" *ngIf="loading">Loading portfolio metrics...</div>
+
+<ng-container *ngIf="data && !loading">
+  <section class="kpi-grid">
+    <div class="card">
+      <div class="kpi-label">Active Occupancy</div>
+      <div class="kpi-value">{{ data.kpis.portfolio_occupancy_pct }}%</div>
+      <div class="kpi-meta">{{ data.kpis.occupied_units }} occupied / {{ data.kpis.total_units - data.kpis.maintenance_units }} active units</div>
+    </div>
+    <div class="card">
+      <div class="kpi-label">Credits Redeemed</div>
+      <div class="kpi-value">{{ data.kpis.total_credits_redeemed | number }}</div>
+      <div class="kpi-meta">PtPAU: {{ data.kpis.credits_per_available_unit | number }} credits / unit</div>
+    </div>
+    <div class="card">
+      <div class="kpi-label">Member Liability</div>
+      <div class="kpi-value">{{ data.kpis.unredeemed_credit_liability | number }}</div>
+      <div class="kpi-meta">Across {{ data.kpis.total_members }} active club members</div>
+    </div>
+    <div class="card">
+      <div class="kpi-label">Avg Length of Stay</div>
+      <div class="kpi-value">{{ data.kpis.avg_length_of_stay }} <span class="unit">nights</span></div>
+      <div class="kpi-meta">Cancellation rate: {{ data.kpis.cancellation_rate_pct }}%</div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>Property Performance Breakdown</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Code</th>
+          <th>Property</th>
+          <th>Region</th>
+          <th>Units (Avail / Occ / Maint)</th>
+          <th>Occupancy</th>
+          <th>Active Bookings</th>
+          <th>Credits Redeemed</th>
+          <th>ALOS</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let p of data.properties">
+          <td class="mono">{{ p.code }}</td>
+          <td><strong>{{ p.name }}</strong></td>
+          <td>{{ p.region }}</td>
+          <td class="mono">{{ p.available_units }} / {{ p.occupied_units }} / {{ p.maintenance_units }}</td>
+          <td><span class="badge">{{ p.active_occupancy_pct }}%</span></td>
+          <td>{{ p.active_bookings }}</td>
+          <td class="mono">{{ p.total_credits_redeemed | number }}</td>
+          <td>{{ p.avg_length_of_stay }}n</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="two-col">
+    <div class="panel">
+      <h2>Season Band Yield</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Season</th>
+            <th>Bookings</th>
+            <th>Nights</th>
+            <th>Credits Yield</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let s of data.kpis.season_yield">
+            <td><strong>{{ s.season_name }}</strong></td>
+            <td>{{ s.booking_count }}</td>
+            <td>{{ s.total_nights }}</td>
+            <td class="mono">{{ s.credits_yield | number }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="panel">
+      <h2>Immutable Credit Ledger Audit</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Member</th>
+            <th>Type</th>
+            <th>Delta</th>
+            <th>Balance</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let entry of data.recent_ledger">
+            <td><strong>{{ entry.member_no }}</strong> · {{ entry.member_name }}</td>
+            <td class="mono small">{{ entry.entry_type }}</td>
+            <td class="mono" [class.pos]="entry.delta > 0" [class.neg]="entry.delta < 0">
+              {{ entry.delta > 0 ? '+' + entry.delta : entry.delta }}
+            </td>
+            <td class="mono">{{ entry.balance_after | number }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</ng-container>
