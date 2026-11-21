@@ -1,0 +1,94 @@
+﻿<div class="page-head">
+  <div>
+    <h1>Reservations & Credit Engine</h1>
+    <p class="muted">Atomic booking transactions with PostgreSQL GIST conflict protection & ledger refunds</p>
+  </div>
+</div>
+
+<div class="alert success" *ngIf="feedback">{{ feedback }}</div>
+<div class="alert error" *ngIf="error">{{ error }}</div>
+
+<section class="panel">
+  <h2>New Member Reservation</h2>
+  <form [formGroup]="form" (ngSubmit)="submitBooking()" class="booking-form">
+    <label>
+      Unit
+      <select formControlName="unit_id">
+        <option *ngFor="let u of units" [value]="u.unit_id">
+          {{ u.property_code }} · {{ u.unit_code }} ({{ u.unit_type }} — {{ u.base_credits_per_night }} cr/n)
+        </option>
+      </select>
+    </label>
+
+    <label>
+      Member
+      <select formControlName="member_id">
+        <option *ngFor="let m of members" [value]="m.member_id">
+          {{ m.member_no }} · {{ m.full_name }} ({{ m.credits_balance }} cr)
+        </option>
+      </select>
+    </label>
+
+    <label>
+      Season Band
+      <select formControlName="season_name">
+        <option value="OFF_PEAK">OFF_PEAK (0.75x)</option>
+        <option value="MID">MID (1.00x)</option>
+        <option value="PEAK">PEAK (1.50x)</option>
+      </select>
+    </label>
+
+    <label>
+      Check-In
+      <input type="date" formControlName="check_in" />
+    </label>
+
+    <label>
+      Check-Out
+      <input type="date" formControlName="check_out" />
+    </label>
+
+    <div class="form-action">
+      <button class="btn" type="submit" [disabled]="form.invalid || submitting">
+        {{ submitting ? 'Processing...' : 'Create Booking' }}
+      </button>
+    </div>
+  </form>
+</section>
+
+<section class="panel">
+  <h2>Reservation Ledger</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Ref</th>
+        <th>Property / Unit</th>
+        <th>Member</th>
+        <th>Dates</th>
+        <th>Season</th>
+        <th>Credits</th>
+        <th>Status</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let r of reservations">
+        <td class="mono"><strong>{{ r.reference_code }}</strong></td>
+        <td>{{ r.property_code }} · <span class="mono">{{ r.unit_code }}</span></td>
+        <td>{{ r.member_name }} <span class="muted">({{ r.member_tier }})</span></td>
+        <td class="mono">{{ r.check_in }} → {{ r.check_out }} ({{ r.nights }}n)</td>
+        <td>{{ r.season_name }}</td>
+        <td class="mono">{{ r.credits_charged | number }}</td>
+        <td><span class="status" [class]="r.status.toLowerCase()">{{ r.status }}</span></td>
+        <td>
+          <button
+            class="btn-sm danger"
+            *ngIf="r.status !== 'CANCELLED'"
+            (click)="cancelBooking(r.reservation_id)">
+            Cancel & Refund
+          </button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</section>
