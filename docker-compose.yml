@@ -1,0 +1,23 @@
+﻿services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: stayledger_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: stayledger_user
+      POSTGRES_PASSWORD: stayledger_pass
+      POSTGRES_DB: stayledger_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - stayledger_pgdata:/var/lib/postgresql/data
+      - ./database/01_schema.sql:/docker-entrypoint-initdb.d/01_schema.sql:ro
+      - ./database/02_seed.sql:/docker-entrypoint-initdb.d/02_seed.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U stayledger_user -d stayledger_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  stayledger_pgdata:
