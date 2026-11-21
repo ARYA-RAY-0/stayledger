@@ -1,0 +1,44 @@
+﻿<div class="page-head">
+  <div>
+    <h1>Accommodation Unit Inventory</h1>
+    <p class="muted">Filter unit stock and toggle maintenance or availability states</p>
+  </div>
+  <div class="filters">
+    <button class="chip" [class.active]="selectedStatus === ''" (click)="loadUnits('')">All</button>
+    <button class="chip" [class.active]="selectedStatus === 'AVAILABLE'" (click)="loadUnits('AVAILABLE')">Available</button>
+    <button class="chip" [class.active]="selectedStatus === 'OCCUPIED'" (click)="loadUnits('OCCUPIED')">Occupied</button>
+    <button class="chip" [class.active]="selectedStatus === 'MAINTENANCE'" (click)="loadUnits('MAINTENANCE')">Maintenance</button>
+  </div>
+</div>
+
+<div class="alert error" *ngIf="error">{{ error }}</div>
+
+<section class="panel">
+  <table>
+    <thead>
+      <tr>
+        <th>Property</th>
+        <th>Unit</th>
+        <th>Type</th>
+        <th>Sleeps</th>
+        <th>Base Rate</th>
+        <th>Status</th>
+        <th>Toggle State</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let u of units">
+        <td><strong>{{ u.property_name }}</strong> <span class="muted">({{ u.region }})</span></td>
+        <td class="mono">{{ u.unit_code }}</td>
+        <td>{{ u.unit_type }}</td>
+        <td>{{ u.sleeps }}</td>
+        <td class="mono">{{ u.base_credits_per_night }} cr/night</td>
+        <td><span class="pill" [class]="u.status.toLowerCase()">{{ u.status }}</span></td>
+        <td class="actions">
+          <button class="btn-sm" (click)="setStatus(u.unit_id, 'AVAILABLE')">Available</button>
+          <button class="btn-sm warn" (click)="setStatus(u.unit_id, 'MAINTENANCE')">Maintenance</button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</section>
